@@ -9,7 +9,6 @@ saliency_vis/
 per-word_vis/
 human_emotion/
 
-*.gz
 *.pt
 # C extensions
 *.so
