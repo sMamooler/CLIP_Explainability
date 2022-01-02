@@ -1,1 +1,9 @@
-# sem_project_IVRL
+# CLIP Saliency
+
+## Setup
+
+
+## Methods
+
+
+## Experiments
