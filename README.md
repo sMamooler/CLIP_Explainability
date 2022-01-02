@@ -10,7 +10,7 @@
 ### [ViT Explainability](code/vit_cam.py)
 
 
-## [Experiments](code/notebooks)
+## Experiments
 
 
 ### [Global Saliency](code/notebooks/global_vis.ipynb)
