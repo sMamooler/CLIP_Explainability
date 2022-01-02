@@ -4,13 +4,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-
-saliency_vis/
-per-word_vis/
-human_emotion/
-comparison/
-img_img/
-img_text/
+Images/affectnet_samples/
+Images/wikiart
 
 *.pt
 # C extensions
