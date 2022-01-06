@@ -17,7 +17,7 @@ pip install -r requirements.txt
 [code](code) directory contains 
 
 - the implementation of saliency visualization methods: for [ViT] (code/vit_cam.py) and ResNet (code/rn_cam.py)-based CLIP
-- Gildenblat et al.'s implementation of [GradCAM](code/pytorch-grad-cam)
+- [GradCAM](code/pytorch-grad-cam) implementation based on [pytorch-grad-cam](https://github.com/jacobgil/pytorch-grad-cam/tree/e93f41104e20134e5feac2a660b343437f601ad0) slightly modified to adapt to CLIP. 
 - A re-implementation of CLIP taken from [Transformer-MM-Explainability](https://github.com/hila-chefer/Transformer-MM-Explainability) repo that keeps tack of attention maps and gradients: [clip_.py](code/clip_.py)
 - [Notebooks](code/notebooks/) for the experiments explained in the report
 
@@ -32,13 +32,12 @@ pip install -r requirements.txt
 
 | Notebook Name |   Experiment  |      Note     |
 | ------------- | ------------- | ------------- |
-| [vit_block_vis](code/notebook/vit_block_vis.ipynb)  | Layer-wise Attention Visualization  |   -    |
-| [saliency_method_compare](code/notebook/saliency_method_compare.ipynb)  | ViT Explainability Method Comparison |  qualitative comparison |
-| [affectnet_emotions](code/notebook/affectnet_emotions.ipynb)  | ViT Explainability Method Comparison |  bias comparison. you need to download a sample of the AffectNet dataset [here](https://drive.google.com/drive/u/1/folders/11RusPab71wGw6LTd9pUnY1Gz3JSH-N_N) and place it in [Images](Images). |
-| [pos_neg_vis](code/notebook/pos_neg_vis.ipynb)  | Positive vs Negative Saliency | - |  
-| [artemis_emotions](code/notebook/artemis_emotions.ipynb)  |  Emotion-Image Similarity  | you need to download the pre-processed WikiArt images [here](https://drive.google.com/drive/u/1/folders/11RusPab71wGw6LTd9pUnY1Gz3JSH-N_N) and place it in [Images](Images). Note that this notebook chooses images randomly so the results may not be the same as the ones in the report. |
-| [perword_vis](code/notebook/perword_vis.ipynb)  | Word-Wise Saliency Visualization  | 
-| [global_vis](code/notebook/global_vis.ipynb)  | - | can be used to visualize saliency maps for ViT and ResNet-based CLIP.
- can be used to reporoduce the results for bias detection.|
+| [vit_block_vis](code/notebooks/vit_block_vis.ipynb)  | Layer-wise Attention Visualization  |   -    |
+| [saliency_method_compare](code/notebooks/saliency_method_compare.ipynb)  | ViT Explainability Method Comparison |  Qualitative comparison |
+| [affectnet_emotions](code/notebooks/affectnet_emotions.ipynb)  | ViT Explainability Method Comparison |  Bias comparison; you need to download a sample of the AffectNet dataset [here](https://drive.google.com/drive/u/1/folders/11RusPab71wGw6LTd9pUnY1Gz3JSH-N_N) and place it in [Images](Images). |
+| [pos_neg_vis](code/notebooks/pos_neg_vis.ipynb)  | Positive vs Negative Saliency | - |  
+| [artemis_emotions](code/notebooks/artemis_emotions.ipynb)  |  Emotion-Image Similarity  | you need to download the pre-processed WikiArt images [here](https://drive.google.com/drive/u/1/folders/11RusPab71wGw6LTd9pUnY1Gz3JSH-N_N) and place it in [Images](Images). Note that this notebook chooses images randomly so the results may not be the same as the ones in the report. |
+| [perword_vis](code/notebooks/perword_vis.ipynb)  | Word-Wise Saliency Visualization  | 
+| [global_vis](code/notebooks/global_vis.ipynb)  | - | can be used to visualize saliency maps for ViT and ResNet-based CLIP.|
 
 
