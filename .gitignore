@@ -1,13 +1,7 @@
 *.ipynb_checkpoints 
-# Byte-compiled / optimized / DLL files
-__pycache__/
-*.py[cod]
-*$py.class
+
 
 Images/affectnet_samples/
 Images/wikiart
 
-*.pt
-# C extensions
-*.so
 
