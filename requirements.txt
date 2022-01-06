@@ -1,0 +1,13 @@
+Pillow>=8.1.1
+matplotlib==3.3.2
+torch==1.7.0
+torchvision==0.8.1
+numpy==1.19.2
+opencv_python==4.5.5.62 
+tqdm==4.51.0
+ftfy==6.0.3 
+ttach==0.0.3
+wget==3.2
+regex==2021.11.10
+
+

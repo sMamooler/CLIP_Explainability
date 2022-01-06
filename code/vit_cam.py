@@ -3,9 +3,10 @@ import numpy as np
 from PIL import Image
 import matplotlib.pyplot as plt
 import cv2
-import re
+import regex as re
 
 from image_utils import show_cam_on_image, show_overlapped_cam
+
 
 def vit_block_vis(image, target_features, img_encoder, block, device, grad=False, neg_saliency=False):
   
@@ -27,23 +28,18 @@ def vit_block_vis(image, target_features, img_encoder, block, device, grad=False
     image_attn_blocks = list(dict(img_encoder.transformer.resblocks.named_children()).values())
     num_tokens = image_attn_blocks[0].attn_probs.shape[-1]
     
-    # TODO: using R here is not needed
-    R = torch.eye(num_tokens, num_tokens, dtype=image_attn_blocks[0].attn_probs.dtype,requires_grad=False).to(device)
     
     if grad:
-        cam = image_attn_blocks[block].attn_grad
+        cam = image_attn_blocks[block].attn_grad.detach()
     else:
-        cam = image_attn_blocks[block].attn_probs
+        cam = image_attn_blocks[block].attn_probs.detach()
         
     cam = cam.mean(dim=0) 
-    R += torch.matmul(cam, R)
-        
-    R[0, 0] = 0
-    image_relevance = R[0, 1:]
+    image_relevance = cam[0, 1:]
     
     image_relevance = image_relevance.reshape(1, 1, 7, 7)
     image_relevance = torch.nn.functional.interpolate(image_relevance, size=224, mode='bilinear')
-    image_relevance = image_relevance.reshape(224, 224)#.cpu().detach().numpy()
+    image_relevance = image_relevance.reshape(224, 224)
     image_relevance = (image_relevance - image_relevance.min()) / (image_relevance.max() - image_relevance.min())
     
     
@@ -66,7 +62,7 @@ def vit_block_vis(image, target_features, img_encoder, block, device, grad=False
     return new_score
 
 
-def vit_relevance(image, target_features, img_encoder, device, use_last_grad=True, neg_saliency=False):
+def vit_relevance(image, target_features, img_encoder, device, method="last grad", neg_saliency=False):
 
     img_encoder.eval()
     
@@ -92,33 +88,43 @@ def vit_relevance(image, target_features, img_encoder, device, use_last_grad=Tru
     image_attn_blocks = list(dict(img_encoder.transformer.resblocks.named_children()).values())
     num_tokens = image_attn_blocks[0].attn_probs.shape[-1]
     
-    R = torch.eye(num_tokens, num_tokens, dtype=image_attn_blocks[0].attn_probs.dtype).to(device)
     
-    last_grad = image_attn_blocks[-1].attn_grad
+    
+    last_attn = image_attn_blocks[-1].attn_probs.detach()
+    last_attn = last_attn.reshape(-1, last_attn.shape[-1], last_attn.shape[-1])
+    
+    last_grad = image_attn_blocks[-1].attn_grad.detach()
     last_grad = last_grad.reshape(-1, last_grad.shape[-1], last_grad.shape[-1])
     
-    
-    for blk in image_attn_blocks:
-        cam = blk.attn_probs
-        cam = cam.reshape(-1, cam.shape[-1], cam.shape[-1])
-        
-        if use_last_grad:
-            grad = last_grad
-        else:
-            grad = blk.attn_grad
-            
-        cam = grad * cam
+    if method=="gradcam":
+        cam = last_grad * last_attn
         cam = cam.clamp(min=0).mean(dim=0) 
-        R += torch.matmul(cam, R)
-        
-    # this line is not needed
-    R[0, 0] = 0
-    image_relevance = R[0, 1:]
+        image_relevance = cam[0, 1:]
+             
+    else:
+        R = torch.eye(num_tokens, num_tokens, dtype=image_attn_blocks[0].attn_probs.dtype).to(device)
+        for blk in image_attn_blocks:
+            cam = blk.attn_probs.detach()
+            cam = cam.reshape(-1, cam.shape[-1], cam.shape[-1])
+
+            if method=="last grad":
+                grad = last_grad
+            elif method=="all grads":
+                grad = blk.attn_grad.detach()
+            else:
+                print("The available visualization methods are: 'gradcam', 'last grad', 'all grads'.")
+                return
+
+            cam = grad * cam
+            cam = cam.clamp(min=0).mean(dim=0) 
+            R += torch.matmul(cam, R)
+
+
+        image_relevance = R[0, 1:]
     
     image_relevance = image_relevance.reshape(1, 1, 7, 7)
     image_relevance = torch.nn.functional.interpolate(image_relevance, size=224, mode='bilinear')
-    # change to cuda then cpu!!!!???
-    image_relevance = image_relevance.reshape(224, 224).cuda().data.cpu().numpy()
+    image_relevance = image_relevance.reshape(224, 224).data.cpu().numpy()
     image_relevance = (image_relevance - image_relevance.min()) / (image_relevance.max() - image_relevance.min())
     image = image[0].permute(1, 2, 0).data.cpu().numpy()
     image = (image - image.min()) / (image.max() - image.min())
@@ -127,9 +133,9 @@ def vit_relevance(image, target_features, img_encoder, device, use_last_grad=Tru
 
 
 
-def interpret_vit(image, target_features, img_encoder, device, use_last_grad=True, neg_saliency=False):
+def interpret_vit(image, target_features, img_encoder, device, method="last grad", neg_saliency=False):
     
-    image_relevance, image = vit_relevance(image, target_features, img_encoder, device, use_last_grad=use_last_grad, neg_saliency=neg_saliency)
+    image_relevance, image = vit_relevance(image, target_features, img_encoder, device, method=method, neg_saliency=neg_saliency)
     vis = show_cam_on_image(image, image_relevance, neg_saliency=neg_saliency)
     vis = np.uint8(255 * vis)
     vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
@@ -137,10 +143,10 @@ def interpret_vit(image, target_features, img_encoder, device, use_last_grad=Tru
     plt.imshow(vis)
 
     
-def interpret_vit_overlapped(image, target_features, img_encoder, device, use_last_grad=True):
+def interpret_vit_overlapped(image, target_features, img_encoder, device, method="last grad"):
     
-    pos_image_relevance, _ = vit_relevance(image, target_features, img_encoder, device, use_last_grad=use_last_grad, neg_saliency=False)
-    neg_image_relevance, image = vit_relevance(image, target_features, img_encoder, device, use_last_grad=use_last_grad, neg_saliency=True)
+    pos_image_relevance, _ = vit_relevance(image, target_features, img_encoder, device, method=method, neg_saliency=False)
+    neg_image_relevance, image = vit_relevance(image, target_features, img_encoder, device, method=method, neg_saliency=True)
 
     vis = show_overlapped_cam(image, neg_image_relevance, pos_image_relevance)
     vis = np.uint8(255 * vis)
@@ -150,6 +156,8 @@ def interpret_vit_overlapped(image, target_features, img_encoder, device, use_la
     
     
 def vit_perword_relevance(image, text, clip_model, clip_tokenizer, device, masked_word="", use_last_grad=True):
+    
+    clip_model.eval()
     
     main_text = clip_tokenizer(text).to(device)
     # remove the word for which you want to visualize the saliency
@@ -178,31 +186,29 @@ def vit_perword_relevance(image, text, clip_model, clip_tokenizer, device, maske
     
     R = torch.eye(num_tokens, num_tokens, dtype=image_attn_blocks[0].attn_probs.dtype).to(device)
     
-    last_grad = image_attn_blocks[-1].attn_grad
+    last_grad = image_attn_blocks[-1].attn_grad.detach()
     last_grad = last_grad.reshape(-1, last_grad.shape[-1], last_grad.shape[-1])
     
     
     for blk in image_attn_blocks:
-        cam = blk.attn_probs
+        cam = blk.attn_probs.detach()
         cam = cam.reshape(-1, cam.shape[-1], cam.shape[-1])
         
         if use_last_grad:
             grad = last_grad
         else:
-            grad = blk.attn_grad
+            grad = blk.attn_grad.detach()
             
         cam = grad * cam
         cam = cam.clamp(min=0).mean(dim=0) 
         R += torch.matmul(cam, R)
         
-    # this line is not needed
-    R[0, 0] = 0
+  
     image_relevance = R[0, 1:]
     
     image_relevance = image_relevance.reshape(1, 1, 7, 7)
     image_relevance = torch.nn.functional.interpolate(image_relevance, size=224, mode='bilinear')
-    # change to cuda then cpu!!!!???
-    image_relevance = image_relevance.reshape(224, 224).cuda().data.cpu().numpy()
+    image_relevance = image_relevance.reshape(224, 224).data.cpu().numpy()
     image_relevance = (image_relevance - image_relevance.min()) / (image_relevance.max() - image_relevance.min())
     image = image[0].permute(1, 2, 0).data.cpu().numpy()
     image = (image - image.min()) / (image.max() - image.min())

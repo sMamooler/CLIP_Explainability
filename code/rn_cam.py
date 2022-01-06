@@ -64,6 +64,7 @@ def interpret_rn_overlapped(image, target_features, img_encoder, method, device)
     
 def rn_perword_relevance(image, text, clip_model, clip_tokenizer, method, device, masked_word=""):   
     
+    clip_model.eval()
     
     main_text = clip_tokenizer(text).to(device)
     # remove the word for which you want to visualize the saliency
