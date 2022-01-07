@@ -12,7 +12,7 @@ pip install -r requirements.txt
 
 ```
 
-## Organzation
+## Organization
 
 [code](code) directory contains 
 
