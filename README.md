@@ -16,7 +16,7 @@ pip install -r requirements.txt
 
 [code](code) directory contains 
 
-- the implementation of saliency visualization methods: for [ViT] (code/vit_cam.py) and ResNet (code/rn_cam.py)-based CLIP
+- the implementation of saliency visualization methods: for [ViT](code/vit_cam.py) and [ResNet](code/rn_cam.py)-based CLIP
 - [GradCAM](code/pytorch-grad-cam) implementation based on [pytorch-grad-cam](https://github.com/jacobgil/pytorch-grad-cam/tree/e93f41104e20134e5feac2a660b343437f601ad0) slightly modified to adapt to CLIP. 
 - A re-implementation of CLIP taken from [Transformer-MM-Explainability](https://github.com/hila-chefer/Transformer-MM-Explainability) repo that keeps tack of attention maps and gradients: [clip_.py](code/clip_.py)
 - [Notebooks](code/notebooks/) for the experiments explained in the report
