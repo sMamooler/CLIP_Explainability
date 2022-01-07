@@ -2,10 +2,8 @@ import numpy as np
 import cv2
 
 def show_cam_on_image(img, mask, neg_saliency=False):
-    if neg_saliency:
-        heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_RAINBOW)
-    else:
-        heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
+   
+    heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
     
     heatmap = np.float32(heatmap) / 255
     cam = heatmap + np.float32(img)
